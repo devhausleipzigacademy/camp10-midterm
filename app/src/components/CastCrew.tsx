@@ -1,18 +1,19 @@
-import { Cast, Crew } from '../types/api.ts';
+import { Cast, Crew } from '../types/api';
 
-type CastCrewProps = { person: Cast | Crew };
+type CastCrewProps = { person: Cast | (Crew & { jobs: string[] }) };
 
 export default function CastCrew({ person }: CastCrewProps) {
-  const isActor = (person: Cast | Crew): person is Cast =>
-    'character' in person;
+  const isActor = (
+    person: Cast | (Crew & { jobs: string[] })
+  ): person is Cast => 'character' in person;
   const { name: personName, profile_path: image } = person;
-  const role = isActor(person) ? person.character : person.job;
+  const roles = isActor(person) ? [person.character] : person.jobs;
   const imageUrl = image
     ? `https://image.tmdb.org/t/p/w500${image}`
-    : 'https://images.unsplash.com/photo-1607317146126-64b09b69eb4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=776&q=80';
+    : 'https://1fid.com/wp-content/uploads/2022/06/no-profile-picture-9-1022x1024.jpg';
   return (
     <div className="flex flex-row gap-5">
-      <div className="h-16 w-16 bg-dark-light">
+      <div className="h-16 w-16 bg-dark-light flex ju">
         <img
           src={imageUrl}
           alt={personName}
@@ -21,7 +22,7 @@ export default function CastCrew({ person }: CastCrewProps) {
       </div>
       <div className="flex flex-col justify-center">
         <h2 className=" text-white font-700 text-m">{personName}</h2>
-        <h4 className="text-s text-white-dimmed">{role}</h4>
+        <h4 className="text-s text-white-dimmed">{roles.join(', ')}</h4>
       </div>
     </div>
   );

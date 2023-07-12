@@ -11,8 +11,8 @@ const MovieCard = ({ movie, variant }: Props) => (
     <div
       className={
         variant === 'upcoming'
-          ? 'rounded-lg w-44 h-56 overflow-hidden transform transition duration-500 hover:scale-110'
-          : 'h-56 transform transition duration-500 hover:scale-110'
+          ? 'rounded-lg w-[174px] h-[228px] overflow-hidden transform transition duration-500 hover:scale-110'
+          : 'h-60 transform transition duration-500 hover:scale-110'
       }
     >
       <img
