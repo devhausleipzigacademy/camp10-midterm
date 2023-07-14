@@ -1,6 +1,10 @@
 import express from "express";
 
-import { getUserById, createUser } from "./controllers/controller";
+import {
+  getUserById,
+  createUser,
+  createBooking,
+} from "./controllers/controller";
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -19,7 +23,7 @@ app.get("/", (req, res, next) => {
 
 app.get("/user/:userId", getUserById);
 app.post("/users", createUser);
-app.post("/createBooking", createUser);
+app.post("/createBooking", createBooking);
 
 app.listen(PORT, () => {
   console.log("Server is running");
