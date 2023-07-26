@@ -55,4 +55,6 @@ export type ScreeningModel = {
 export type MovieModel = {
   id: number;
   releaseDate: string;
+  genres: number[];
+  posterPath: string;
 }

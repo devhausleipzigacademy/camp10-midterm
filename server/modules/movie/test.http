@@ -13,4 +13,6 @@ GET http://localhost:8000/movie/447365 HTTP/1.1
 
 ###
 
+// purge all the movie & screening data in db
+
 DELETE http://localhost:8000/movie HTTP/1.1

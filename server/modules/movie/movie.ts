@@ -7,6 +7,8 @@ export async function movieModule() {
     body: z.object({
       id: z.number(),
       releaseDate: z.coerce.date(),
+      posterPath: z.string(),
+      genres: z.number().array()
     }),
     pathParams: z.object({}),
     queryParams: z.object({}),
@@ -43,7 +45,11 @@ export async function movieModule() {
 
   app.get('/movie', async (_, res) => {
     try {
-      const movies = await prismaClient.movie.findMany();
+      const movies = await prismaClient.movie.findMany({
+        orderBy: {
+          releaseDate: 'asc',
+        }
+      });
       res.status(200).json(movies);
     } catch (err) {
       res.send(err);

@@ -18,11 +18,11 @@ Content-type: application/json
 }]
 
 ###
-GET http://localhost:8000/screening/447365 HTTP/1.1
+GET http://localhost:8000/screening/?movieId=807172 HTTP/1.1
 
 
 ###
-GET http://localhost:8000/screening/667538?date=2023-07-30 HTTP/1.1
+GET http://localhost:8000/screening/?movieId=807172&date=2023-07-26 HTTP/1.1
 
 
 ###

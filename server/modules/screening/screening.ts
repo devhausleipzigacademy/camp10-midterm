@@ -17,11 +17,31 @@ export async function screeningModule() {
           .length(54),
       })
       .array(),
-    pathParams: z.object({
-      movieId: z.number().optional()
-    }),
+    pathParams: z.object({}),
+    queryParams: z.object({}),
+  });
+
+  const screeningGetModel = z.object({
+    body: z.object({}),
+    pathParams: z.object({}),
     queryParams: z.object({
-      date: z.string().datetime().optional()
+      movieId: z.string().refine((value) => {
+        return !isNaN(Number(value));
+      }, {
+        message: 'Invalid number format. Expected a valid number as a string.',
+      }),
+      date: z
+        .string()
+        .refine(
+          value => {
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            return dateRegex.test(value);
+          },
+          {
+            message: 'Invalid date format. Expected format: "YYYY-MM-DD"',
+          }
+        )
+        .optional(),
     }),
   });
 
@@ -49,27 +69,39 @@ export async function screeningModule() {
         return;
       }
       if (error instanceof ZodError) {
-        res.send(error.message)
+        res.send(error.message);
       }
       res.status(500).send(error);
     }
   });
 
-  app.get('/screening/:movieId', async (req, res) => {
-    const { movieId } = req.params;
-    const { date } = req.query;
-    const queryDate = new Date(date as string)
-    console.log(queryDate) 
-
+  app.get('/screening', async (req, res) => {
     try {
-      const screenings = await prismaClient.screening.findMany({
-        where: {
-          movieId: Number(movieId),
-          datetime: {
-            gt: queryDate && undefined
-          }
-        },
+      const { queryParams } = screeningGetModel.parse({
+        body: req.body,
+        pathParams: req.params,
+        queryParams: req.query,
       });
+
+      const filters = {};
+
+      if (queryParams.movieId) {
+        Object.assign(filters, { movieId: Number(queryParams.movieId) });
+      }
+
+      if (queryParams.date) {
+        const queryDate = new Date(queryParams.date as string);
+        const endDate = new Date(queryParams.date as string);
+        endDate.setDate(queryDate.getDate() + 1);
+        Object.assign(filters, { datetime: { gte: queryDate ?? undefined,lt: endDate ?? undefined }})
+      }
+
+      console.log({ filters })
+
+      const screenings = await prismaClient.screening.findMany({
+        where: filters
+      });
+      console.log(screenings.length);
       res.json(screenings);
     } catch (err) {
       res.send(err);

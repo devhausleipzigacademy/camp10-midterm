@@ -8,10 +8,12 @@ datasource db {
 }
 
 model Movie {
-  id          Int         @id
+  id          Int                  @id
+  posterPath  String
   releaseDate DateTime
-  screenings  Screening[]
+  genres      Int[]
   likedBy     MoviesLikedByUsers[]
+  screenings  Screening[]
 }
 
 model Screening {
@@ -20,13 +22,14 @@ model Screening {
   movieId          Int
   seatAvailability Int[]
   bookings         Booking[]
-  movie            Movie     @relation(fields: [movieId], references: [id])
+  movie            Movie     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
   @@unique([movieId, datetime])
 }
 
 model User {
-  id                  String    @id @default(uuid())
-  email               String    @unique
+  id                  String               @id @default(uuid())
+  email               String               @unique
   passwordHashAndSalt String
   firstName           String
   lastName            String
@@ -52,8 +55,9 @@ model Booking {
 
 model MoviesLikedByUsers {
   movieId Int
-  movie Movie @relation(fields: [movieId], references: [id])
-  userId String
-  user User @relation(fields: [userId], references: [id])
+  userId  String
+  movie   Movie  @relation(fields: [movieId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
+
   @@id([movieId, userId])
 }

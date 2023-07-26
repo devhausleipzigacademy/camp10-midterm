@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { useRouteLoaderData } from 'react-router-dom';
 import { Movie, ScreeningModel } from '../types/api';
 import { generateTicketId } from '../lib/utils';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { getAvailableTimes } from '../api/screenings';
 
 type DateType = {
   isActive: boolean;
@@ -26,46 +26,6 @@ const optionsDate: Intl.DateTimeFormatOptions = {
   month: 'short',
 };
 
-const fixedTimes = [
-  '10:30',
-  '12:55',
-  '14:30',
-  '15:45',
-  '17:50',
-  '19:30',
-  '20:45',
-  '22:30',
-];
-
-function generateAvailableTimes(date?: string) {
-  const timeslots: TimeType[] = [];
-  const optionsDate: Intl.DateTimeFormatOptions = {
-    day: 'numeric',
-    month: 'short',
-  };
-  const today = new Date().toLocaleString('en-GB', optionsDate);
-  if (today === date) {
-    const currentHour = new Date().getHours();
-    for (let i = 0; i <= 7; i++) {
-      const hour = Number(fixedTimes[i].split(':')[0]);
-      timeslots.push({
-        isActive: false,
-        isDisabled: hour > currentHour ? false : true,
-        time: fixedTimes[i],
-      });
-    }
-  } else {
-    for (let i = 0; i <= 7; i++) {
-      timeslots.push({
-        isActive: false,
-        isDisabled: Math.random() > 0.3 ? false : true,
-        time: fixedTimes[i],
-      });
-    }
-  }
-  return timeslots;
-}
-
 export function SelectTime() {
   const TODAY = new Date().toLocaleString('en-GB', optionsDate);
   const { movie: currentMovie, screenings: currentScreenings } =
@@ -83,36 +43,33 @@ export function SelectTime() {
           optionsDate
         );
         if (new Date(`${today} ${2023}`) <= new Date(`${showDate} ${2023}`)) {
-          console.log(showDate);
           return showDate;
         }
       })
     ),
   ];
 
-  const initAvailableDates = screeningDates.map((date, idx) => {
-    return {
-      date: date,
-      isActive: idx === 0 ? true : false,
-      isDisabled: false,
-    };
-  }).filter(x => x.date !== undefined) as DateType[];
+  const initAvailableDates = screeningDates
+    .map((date, idx) => {
+      return {
+        date: date,
+        isActive: idx === 0 ? true : false,
+        isDisabled: false,
+      };
+    })
+    .filter(x => x.date !== undefined) as DateType[];
 
   const [availableDates, setAvailableDates] = useState(
     initAvailableDates.slice(0, 12)
   );
-  const [availableTimes, setAvailableTimes] = useState(
-    generateAvailableTimes(TODAY)
-  );
-
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [availableTimes, setAvailableTimes] = useState([] as TimeType[]);
 
   // use ticket-store and set id, movieId  for once only
   const ticketStore = useTicketStore();
   const { setMovieId, setId, setTime, setDate, setPrice, setSeat } =
     ticketStore;
   useEffect(() => {
+    handleDateClick(initAvailableDates[0].date);
     setId(generateTicketId());
     setTime(''),
       setDate(TODAY),
@@ -121,13 +78,14 @@ export function SelectTime() {
       setMovieId(currentMovie.id);
   }, []);
 
-  const handleDateClick = (clickedDate: string) => {
+  const handleDateClick = async (clickedDate: string) => {
+    const timeslots = await getAvailableTimes(clickedDate, currentMovie.id);
     const updatedDates = availableDates.map(date => {
       if (date.date === clickedDate && !date.isDisabled) {
         // Toggle the isActive property if the date is not disabled
         setDate(date.date);
         setTime('');
-        setAvailableTimes(generateAvailableTimes(date.date));
+        setAvailableTimes(timeslots);
         return {
           ...date,
           isActive: true,
@@ -142,10 +100,6 @@ export function SelectTime() {
       return date;
     });
     setAvailableDates(updatedDates);
-    const formattedDate = new Date(`${clickedDate} 2023`).toLocaleDateString(
-      'en-CA'
-    );
-    navigate(`${location.pathname}?date=${formattedDate}`);
   };
 
   const handleTimeClick = (clickedTime: string) => {
