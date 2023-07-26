@@ -2,12 +2,15 @@ POST http://localhost:8000/auth/signup HTTP/1.1
 content-type: application/json
 
 {
-    "firstName": "John",
+    "firstName": "Joan",
     "lastName": "Doe",
     "email": "abc@123456.de",
     "password": "password123ab!@#"
 }
 
+###
+
+GET http://localhost:8000 HTTP/1.1
 ###
 
 POST http://localhost:8000/auth/login HTTP/1.1
